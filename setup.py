@@ -22,5 +22,5 @@ setup(name = 'czagenda ical',
     classifiers = CLASSIFIERS,
     keywords = KEYWORDS,
     zip_safe = True,
-    install_requires = ["oauth2>=1.5.211", "iso8601>=0.1.4", "icalendar==3.0"]
+    install_requires = ["oauth2>=1.5.211", "iso8601>=0.1.4"]
 )
