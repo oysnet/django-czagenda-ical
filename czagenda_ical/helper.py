@@ -95,7 +95,7 @@ class EventSearchResult(object):
                 ical_event.set('dtstart', datetime.strptime(event['when'][0]['startTime'], '%Y-%m-%d'))
                 
                 if event['when'][0].has_key('endTime'):
-                    ical_event.add('dtend', datetime.strptime(event['when'][0]['endTime'], '%Y-%m-%d'))
+                    ical_event.add('dtend', datetime.strptime(event['when'][0]['endTime'][0:10], '%Y-%m-%d'))
             
             
             location = []
