@@ -12,7 +12,7 @@ OAUTH_CONSUMER_SECRET = getattr(settings, 'CZAGENDA_CONSUMER_SECRET')
 API_HOST = getattr(settings, 'CZAGENDA_API_HOST')
 API_PORT = getattr(settings, 'CZAGENDA_API_PORT')
 
-RE_ISO8601 = re.compile(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
+RE_ISO8601 = re.compile(r'[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}:[0-9]{2}Z?')
 
 class EventSearchResult(object):
     
