@@ -24,9 +24,6 @@ class IcalView(SingleObjectMixin, View):
         
         if ext == 'txt':
             return HttpResponse(search_result.to_ical(), content_type="text/plain; charset=utf-8")
-        
-        if ext == 'json':
-            return HttpResponse(search_result.to_json(), content_type="application/json; charset=utf-8")
         else:
             return HttpResponse(search_result.to_ical(), content_type="text/calendar; charset=utf-8")
         
