@@ -218,7 +218,12 @@ class CzAgendaHelper(object):
             
         headers = {}
         resp, content = http_client.request("http://%s:%s/api/event/_count?%s" % (API_HOST, API_PORT, querystring), headers=headers, method="GET")
-        resp, content = http_client.request("http://%s:%s/api/event/_search?%s&size=%s" % (API_HOST, API_PORT, querystring, simplejson.loads(content)['count']), headers=headers, method="GET")
+        
+        count = simplejson.loads(content)['count']
+        if int(count) > 1000:
+            count = 1000
+        
+        resp, content = http_client.request("http://%s:%s/api/event/_search?%s&size=%s" % (API_HOST, API_PORT, querystring, count), headers=headers, method="GET")
         
         return EventSearchResult(simplejson.loads(content), http_client)
    
