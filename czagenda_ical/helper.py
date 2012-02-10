@@ -4,7 +4,7 @@ from django.conf import settings
 from django.utils import simplejson
 
 from icalendar import Calendar, Event
-from datetime import datetime
+from datetime import datetime, date
 
 OAUTH_CONSUMER_KEY = getattr(settings, 'CZAGENDA_OAUTH_CONSUMER_KEY')
 OAUTH_CONSUMER_SECRET = getattr(settings, 'CZAGENDA_CONSUMER_SECRET')
@@ -13,6 +13,7 @@ API_HOST = getattr(settings, 'CZAGENDA_API_HOST')
 API_PORT = getattr(settings, 'CZAGENDA_API_PORT')
 
 RE_ISO8601 = re.compile(r'[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}:[0-9]{2}Z?')
+
 
 class EventSearchResult(object):
     
@@ -45,6 +46,8 @@ class EventSearchResult(object):
             ical_event.add('dtstamp', iso8601.parse_date(row['createDate']))
             ical_event.add('CREATED', iso8601.parse_date(row['createDate']))
             ical_event.add('LAST-MODIFIED', iso8601.parse_date(row['updateDate']))
+            
+            ical_event.add('TRANSP', 'TRANSPARENT' )
             
             ical_event.set('summary', event['title'])
             
@@ -85,6 +88,9 @@ class EventSearchResult(object):
             if event.has_key('website'):
                 ical_event.set('url', event['website'])
             
+                
+            
+            
             if RE_ISO8601.match(event['when'][0]['startTime']):
                 ical_event.set('dtstart', iso8601.parse_date(event['when'][0]['startTime']))
                 
@@ -92,10 +98,13 @@ class EventSearchResult(object):
                     ical_event.add('dtend', iso8601.parse_date(event['when'][0]['endTime']))
                 
             else:
-                ical_event.set('dtstart', datetime.strptime(event['when'][0]['startTime'], '%Y-%m-%d'))
+                
+                dt = datetime.strptime(event['when'][0]['startTime'][0:10], '%Y-%m-%d')
+                ical_event.set('dtstart', date(dt.year, dt.month, dt.day))
                 
                 if event['when'][0].has_key('endTime'):
-                    ical_event.add('dtend', datetime.strptime(event['when'][0]['endTime'][0:10], '%Y-%m-%d'))
+                    dt = datetime.strptime(event['when'][0]['endTime'][0:10], '%Y-%m-%d')
+                    ical_event.add('dtend', date(dt.year, dt.month, dt.day))
             
             
             location = []
