@@ -152,8 +152,9 @@ class EventSearchResult(object):
         if len(CzAgendaHelper.CATEGORIES) > 0 and not force_reload:
             return
         
+        resp, content = self._http_client.request("http://%s:%s/api/category/_count" % (API_HOST, API_PORT), headers={}, method="GET")
         
-        resp, content = self._http_client.request("http://%s:%s/api/category" % (API_HOST, API_PORT), headers={}, method="GET")
+        resp, content = self._http_client.request("http://%s:%s/api/category/?size=%s" % (API_HOST, API_PORT, content['count']), headers={}, method="GET")
 
         for category in simplejson.loads(content)['rows']:
             CzAgendaHelper.CATEGORIES[category['id']] = category['title']
