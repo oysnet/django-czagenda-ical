@@ -212,12 +212,13 @@ class CzAgendaHelper(object):
             
         
         if pattern is not None:
-            querystring = '?q=' + pattern
+            querystring = 'q=' + pattern
         else:
             querystring = ''
             
         headers = {}
-        resp, content = http_client.request("http://%s:%s/api/event/_search%s" % (API_HOST, API_PORT, querystring), headers=headers, method="GET")
+        resp, content = http_client.request("http://%s:%s/api/event/_count?%s" % (API_HOST, API_PORT, querystring), headers=headers, method="GET")
+        resp, content = http_client.request("http://%s:%s/api/event/_search?%s&size=%s" % (API_HOST, API_PORT, querystring, simplejson.loads(content)['count'])), headers=headers, method="GET")
         
         return EventSearchResult(simplejson.loads(content), http_client)
    
