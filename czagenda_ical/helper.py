@@ -6,6 +6,8 @@ from django.utils import simplejson
 from icalendar import Calendar, Event
 from datetime import datetime, date
 from copy import deepcopy
+import pytz
+
 
 OAUTH_CONSUMER_KEY = getattr(settings, 'CZAGENDA_OAUTH_CONSUMER_KEY')
 OAUTH_CONSUMER_SECRET = getattr(settings, 'CZAGENDA_OAUTH_CONSUMER_SECRET')
@@ -48,6 +50,14 @@ class EventSearchResult(object):
         
         return results
         
+    def set_tzinfo(self, d):
+        
+        if d.tzinfo is None:
+            d.tzinfo = pytz.utc
+        else:
+            d = datetime(d.year, d.month, d.day, d.hour, d.minute,d.second, tzinfo=pytz.timezone(d.tzinfo.tzname(None)))
+        return d
+        
     def to_ical(self):
         
         self._load_categories()
@@ -67,9 +77,9 @@ class EventSearchResult(object):
             ical_event.set('uid', '%s@czagenda.org' % row['id'])
             ical_event.set('status', event['eventStatus'].upper())
             
-            ical_event.add('dtstamp', iso8601.parse_date(row['createDate']))
-            ical_event.add('CREATED', iso8601.parse_date(row['createDate']))
-            ical_event.add('LAST-MODIFIED', iso8601.parse_date(row['updateDate']))
+            ical_event.add('dtstamp', self.set_tzinfo(iso8601.parse_date(row['createDate'])))
+            ical_event.add('CREATED',  self.set_tzinfo(iso8601.parse_date(row['createDate'])))
+            ical_event.add('LAST-MODIFIED',  self.set_tzinfo(iso8601.parse_date(row['updateDate'])))
             
             ical_event.add('TRANSP', 'TRANSPARENT' )
             
@@ -116,10 +126,10 @@ class EventSearchResult(object):
             
             
             if RE_ISO8601.match(event['when'][0]['startTime']):
-                ical_event.set('dtstart', iso8601.parse_date(event['when'][0]['startTime']))
+                ical_event.set('dtstart',  self.set_tzinfo(iso8601.parse_date(event['when'][0]['startTime'])))
                 
                 if event['when'][0].has_key('endTime'):
-                    ical_event.add('dtend', iso8601.parse_date(event['when'][0]['endTime']))
+                    ical_event.add('dtend',  self.set_tzinfo(iso8601.parse_date(event['when'][0]['endTime'])))
                 
             else:
                 
@@ -243,7 +253,7 @@ class CzAgendaHelper(object):
     def search_event(self, pattern=None, start=None, limit=None, sort=None):
         http_client = self.get_http_client()
         
-        if pattern is not None:
+        if pattern is not None and len(pattern) > 0:
             querystring = 'q=' + pattern
         else:
             querystring = ''
