@@ -8,7 +8,7 @@ from datetime import datetime, date
 from copy import deepcopy
 
 OAUTH_CONSUMER_KEY = getattr(settings, 'CZAGENDA_OAUTH_CONSUMER_KEY')
-OAUTH_CONSUMER_SECRET = getattr(settings, 'CZAGENDA_CONSUMER_SECRET')
+OAUTH_CONSUMER_SECRET = getattr(settings, 'CZAGENDA_OAUTH_CONSUMER_SECRET')
 
 API_HOST = getattr(settings, 'CZAGENDA_API_HOST')
 API_PORT = getattr(settings, 'CZAGENDA_API_PORT')
@@ -242,7 +242,6 @@ class CzAgendaHelper(object):
         
     def search_event(self, pattern=None, start=None, limit=None, sort=None):
         http_client = self.get_http_client()
-            
         
         if pattern is not None:
             querystring = 'q=' + pattern
