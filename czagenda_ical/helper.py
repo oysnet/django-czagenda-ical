@@ -5,6 +5,7 @@ from django.utils import simplejson
 
 from icalendar import Calendar, Event
 from datetime import datetime, date
+from copy import deepcopy
 
 OAUTH_CONSUMER_KEY = getattr(settings, 'CZAGENDA_OAUTH_CONSUMER_KEY')
 OAUTH_CONSUMER_SECRET = getattr(settings, 'CZAGENDA_CONSUMER_SECRET')
@@ -23,6 +24,29 @@ class EventSearchResult(object):
     
     def to_json(self):
         return simplejson.dumps(self.results)
+        
+    def to_python(self):
+        
+        results = deepcopy(self.results)
+        for result in results['rows']:
+            
+            if RE_ISO8601.match(result['event']['when'][0]['startTime']):
+                result['event']['when'][0]['startTime'] = iso8601.parse_date(result['event']['when'][0]['startTime'])
+                
+                if result['event']['when'][0].has_key('endTime'):
+                    result['event']['when'][0]['endTime'] = iso8601.parse_date(result['event']['when'][0]['endTime'])
+                
+            else:
+                
+                dt = datetime.strptime(result['event']['when'][0]['startTime'][0:10], '%Y-%m-%d')
+                result['event']['when'][0]['startTime'] = date(dt.year, dt.month, dt.day)
+                
+                if result['event']['when'][0].has_key('endTime'):
+                    dt = datetime.strptime(result['event']['when'][0]['endTime'][0:10], '%Y-%m-%d')
+                    result['event']['when'][0]['endTime'] = date(dt.year, dt.month, dt.day)
+            
+        
+        return results
         
     def to_ical(self):
         
@@ -226,12 +250,15 @@ class CzAgendaHelper(object):
             querystring = ''
             
         headers = {}
-        resp, content = http_client.request("http://%s:%s/api/event/_count?%s" % (API_HOST, API_PORT, querystring), headers=headers, method="GET")
-        
-        count = simplejson.loads(content)['count']
-        if int(count) > 1000:
-            count = 1000
-        
+        if limit is None:
+            resp, content = http_client.request("http://%s:%s/api/event/_count?%s" % (API_HOST, API_PORT, querystring), headers=headers, method="GET")
+            
+            count = simplejson.loads(content)['count']
+            if int(count) > 1000:
+                count = 1000
+        else:
+            count = limit
+            
         resp, content = http_client.request("http://%s:%s/api/event/_search?%s&size=%s" % (API_HOST, API_PORT, querystring, count), headers=headers, method="GET")
         
         return EventSearchResult(simplejson.loads(content), http_client)
