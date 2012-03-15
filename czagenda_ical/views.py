@@ -4,9 +4,6 @@ from czagenda_ical.helper import CzAgendaHelper
 from django.views.generic.detail import SingleObjectMixin
 from czagenda_ical.models import Search
 
-OAUTH_TOKEN_KEY = "GVK0w7VXylUfTEk3gy"
-OAUTH_TOKEN_SECRET = "YzlpEaOn56QxJQUfMnxRiJLF3AiqKPFS" 
-
 class IcalView(SingleObjectMixin, View):
     
     model = Search
@@ -14,6 +11,8 @@ class IcalView(SingleObjectMixin, View):
     def get(self, request, *args, **kwargs):
         
         search = self.get_object()
+        search.ping()
+        
         profile = search.user.get_profile()
         
         helper = CzAgendaHelper(profile.get_token(), profile.get_secret())
