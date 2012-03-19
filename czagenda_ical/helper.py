@@ -7,7 +7,7 @@ from icalendar import Calendar, Event
 from datetime import datetime, date
 from copy import deepcopy
 import pytz
-
+from czapi import Client
 
 OAUTH_CONSUMER_KEY = getattr(settings, 'CZAGENDA_OAUTH_CONSUMER_KEY')
 OAUTH_CONSUMER_SECRET = getattr(settings, 'CZAGENDA_OAUTH_CONSUMER_SECRET')
@@ -51,6 +51,9 @@ class EventSearchResult(object):
         return results
         
     def set_tzinfo(self, d):
+        
+        if not isinstance(d, datetime):
+            return d
         
         if d.tzinfo is None:
             d.tzinfo = pytz.utc
@@ -122,9 +125,14 @@ class EventSearchResult(object):
             if event.has_key('website'):
                 ical_event.set('url', event['website'])
             
+            
+            ical_event.set('dtstart',  self.set_tzinfo(event['when'][0]['startTime']))
                 
+            if event['when'][0].has_key('endTime'):
+                ical_event.add('dtend',  self.set_tzinfo(event['when'][0]['endTime']))
+                    
             
-            
+            """
             if RE_ISO8601.match(event['when'][0]['startTime']):
                 ical_event.set('dtstart',  self.set_tzinfo(iso8601.parse_date(event['when'][0]['startTime'])))
                 
@@ -139,7 +147,7 @@ class EventSearchResult(object):
                 if event['when'][0].has_key('endTime'):
                     dt = datetime.strptime(event['when'][0]['endTime'][0:10], '%Y-%m-%d')
                     ical_event.add('dtend', date(dt.year, dt.month, dt.day))
-            
+            """
             
             location = []
             
@@ -251,27 +259,19 @@ class CzAgendaHelper(object):
             
         
     def search_event(self, pattern=None, start=None, limit=None, sort=None):
-        http_client = self.get_http_client()
+        api = Client(self._token, self._secret, 
+                     OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, 
+                     "http://%s:%s/api" % (API_HOST, API_PORT))
         
-        if pattern is not None and len(pattern) > 0:
-            querystring = 'q=' + pattern
-        else:
-            querystring = ''
-            
-        headers = {}
-        if limit is None:
-            resp, content = http_client.request("http://%s:%s/api/event/_count?%s" % (API_HOST, API_PORT, querystring), headers=headers, method="GET")
-            
-            count = simplejson.loads(content)['count']
-            if int(count) > 1000:
-                count = 1000
-        else:
-            count = limit
-            
-        resp, content = http_client.request("http://%s:%s/api/event/_search?%s&size=%s" % (API_HOST, API_PORT, querystring, count), headers=headers, method="GET")
+        count = api.search_event_count(pattern)
         
-        return EventSearchResult(simplejson.loads(content), http_client)
-   
+        if int(count) > 1000:
+            count = 1000
+            
+        content = api.search_event(pattern, limit=count)
+        
+        return EventSearchResult(content, self.get_http_client())
+            
         
         
     def get_http_client(self):
