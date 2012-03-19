@@ -263,6 +263,7 @@ class CzAgendaHelper(object):
                      OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, 
                      "http://%s:%s/api" % (API_HOST, API_PORT))
         
+        pattern = api.parse_search_pattern(pattern)
         count = api.search_event_count(pattern)
         
         if int(count) > 1000:
