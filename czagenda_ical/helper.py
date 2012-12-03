@@ -56,7 +56,8 @@ class EventSearchResult(object):
             return d
         
         if d.tzinfo is None:
-            d.tzinfo = pytz.utc
+            #d.tzinfo = pytz.utc
+            d = datetime(d.year, d.month, d.day, d.hour, d.minute,d.second, tzinfo=pytz.utc)
         else:
             d = datetime(d.year, d.month, d.day, d.hour, d.minute,d.second, tzinfo=pytz.timezone(d.tzinfo.tzname(None)))
         return d
