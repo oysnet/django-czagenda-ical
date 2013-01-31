@@ -59,7 +59,7 @@ class EventSearchResult(object):
             #d.tzinfo = pytz.utc
             d = datetime(d.year, d.month, d.day, d.hour, d.minute,d.second, tzinfo=pytz.utc)
         else:
-            d = datetime(d.year, d.month, d.day, d.hour, d.minute,d.second, tzinfo=pytz.timezone(d.tzinfo.tzname(None)))
+            d = d.astimezone(pytz.utc)
         return d
         
     def to_ical(self):
